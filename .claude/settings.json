@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:5000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -L http://127.0.0.1:5000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:5000/auth/login)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:5000/auth/register)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -L http://127.0.0.1:5000/teacher/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -L http://127.0.0.1:5000/student/dashboard)",
+      "Bash(curl -sv http://127.0.0.1:5000/auth/login)",
+      "PowerShell(Get-Process python -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(python run.py)",
+      "Bash(curl -v -X POST http://127.0.0.1:5000/auth/login -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=teacher%40test.com&password=teacher123')",
+      "Bash(curl -s -c /tmp/tc.txt -b /tmp/tc.txt -X POST http://127.0.0.1:5000/auth/login -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=teacher%40test.com&password=teacher123' -L -o /tmp/tr.html -w 'Final status: %{http_code}, URL: %{url_effective}\\\\n')",
+      "Bash(curl -s -c /tmp/sc.txt -b /tmp/sc.txt -X POST http://127.0.0.1:5000/auth/login -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=student%40test.com&password=student123' -L -o /tmp/sr.html -w 'Final status: %{http_code}, URL: %{url_effective}\\\\n')",
+      "Bash(curl -s -c /tmp/sc.txt -b /tmp/sc.txt http://127.0.0.1:5000/teacher/dashboard -L -o /tmp/br.html -w 'Final status: %{http_code}, URL: %{url_effective}\\\\n')",
+      "Bash(curl -s http://127.0.0.1:5000/auth/login -X POST -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=teacher%40test.com&password=wrongpass' -o /tmp/wr.html -w 'Status: %{http_code}\\\\n')",
+      "Bash(curl -s -c /tmp/tc.txt -b /tmp/tc.txt http://127.0.0.1:5000/auth/dashboard -L -w 'Status: %{http_code}, Final URL: %{url_effective}\\\\n' -o /tmp/dash.html)"
+    ]
+  }
+}

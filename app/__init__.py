@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_bcrypt import Bcrypt
 from config import Config
 
@@ -29,6 +29,14 @@ def create_app():
     app.register_blueprint(teacher_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(exam_bp)
+
+    @app.route('/')
+    def index():
+        if current_user.is_authenticated:
+            if current_user.role == 'teacher':
+                return redirect(url_for('teacher.dashboard'))
+            return redirect(url_for('student.dashboard'))
+        return redirect(url_for('auth.login'))
 
     with app.app_context():
         db.create_all()

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h3 class="fw-bold mb-0">
+      <i class="bi bi-person me-2 text-info"></i>Student Dashboard
+    </h3>
+    <p class="text-muted mt-1">Welcome back, {{ current_user.name }}</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card p-4 h-100 text-center">
+      <i class="bi bi-pencil-square fs-1 text-dark mb-3"></i>
+      <h5 class="fw-bold">Available Exams</h5>
+      <p class="text-muted small">View and take exams that have been published by your teacher.</p>
+      <a href="#" class="btn btn-dark mt-auto">
+        <i class="bi bi-list-check me-1"></i>View Exams
+      </a>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 h-100 text-center">
+      <i class="bi bi-trophy fs-1 text-dark mb-3"></i>
+      <h5 class="fw-bold">My Results</h5>
+      <p class="text-muted small">View scores and AI feedback for your submitted exams once released.</p>
+      <a href="#" class="btn btn-outline-dark mt-auto">
+        <i class="bi bi-graph-up me-1"></i>View Results
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col">
+    <div class="card p-4">
+      <h6 class="fw-bold text-muted mb-3">COMING IN NEXT STAGES</h6>
+      <ul class="list-unstyled mb-0">
+        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Stage 2 — Auth system <span class="badge bg-success">Done</span></li>
+        <li class="mb-2"><i class="bi bi-circle text-muted me-2"></i>Stage 4 — Exam taking interface with timer</li>
+        <li class="mb-2"><i class="bi bi-circle text-muted me-2"></i>Stage 8 — View scores &amp; AI feedback</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
