@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Edit: {{ exam.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('teacher.exams') }}">My Exams</a></li>
+    <li class="breadcrumb-item active">{{ exam.title }}</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">{{ exam.title }}</h3>
+    <span class="text-muted me-3"><i class="bi bi-book me-1"></i>{{ exam.subject }}</span>
+    <span class="text-muted me-3"><i class="bi bi-clock me-1"></i>{{ exam.time_limit_minutes }} min</span>
+    {% if exam.is_active %}
+      <span class="badge bg-success"><i class="bi bi-broadcast me-1"></i>Live</span>
+    {% else %}
+      <span class="badge bg-secondary"><i class="bi bi-pencil me-1"></i>Draft</span>
+    {% endif %}
+  </div>
+  <form method="POST" action="{{ url_for('teacher.toggle_exam', exam_id=exam.id) }}">
+    {% if exam.is_active %}
+      <button type="submit" class="btn btn-warning">
+        <i class="bi bi-pause-circle me-1"></i>Unpublish
+      </button>
+    {% else %}
+      <button type="submit" class="btn btn-success"
+              {% if exam.questions|length == 0 %}disabled title="Add questions first"{% endif %}>
+        <i class="bi bi-play-circle me-1"></i>Publish Exam
+      </button>
+    {% endif %}
+  </form>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left: Question list -->
+  <div class="col-lg-7">
+    <div class="card p-0">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 px-4">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-list-ol me-2"></i>Questions
+          <span class="badge bg-dark ms-1">{{ exam.questions|length }}</span>
+        </h6>
+        <span class="text-muted small">
+          Total marks: {{ exam.questions|sum(attribute='max_marks') }}
+        </span>
+      </div>
+
+      {% if exam.questions %}
+      <ul class="list-group list-group-flush" id="question-list">
+        {% for q in exam.questions %}
+        <li class="list-group-item px-4 py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1 me-3">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="text-muted fw-bold small">Q{{ loop.index }}</span>
+                <span class="badge bg-light text-dark border">
+                  {% if q.type == 'short' %}Short Answer
+                  {% elif q.type == 'long' %}Long Answer
+                  {% else %}Essay{% endif %}
+                </span>
+                <span class="badge bg-dark">{{ q.max_marks }} mark{{ 's' if q.max_marks != 1 }}</span>
+              </div>
+              <p class="mb-1 fw-semibold">{{ q.text }}</p>
+              {% if q.model_answer %}
+                <p class="text-muted small mb-1">
+                  <i class="bi bi-check-circle me-1 text-success"></i>Model answer set
+                </p>
+              {% else %}
+                <p class="text-warning small mb-1">
+                  <i class="bi bi-exclamation-circle me-1"></i>No model answer yet
+                </p>
+              {% endif %}
+              {% if q.rubric %}
+                <p class="text-muted small mb-0">
+                  <i class="bi bi-list-check me-1 text-primary"></i>Rubric set
+                </p>
+              {% endif %}
+            </div>
+
+            <div class="d-flex flex-column gap-1 align-items-end">
+              <!-- Move buttons -->
+              <div class="btn-group btn-group-sm">
+                <form method="POST" action="{{ url_for('teacher.move_question', exam_id=exam.id, q_id=q.id) }}" class="d-inline">
+                  <input type="hidden" name="direction" value="up">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm"
+                          {% if loop.first %}disabled{% endif %} title="Move up">
+                    <i class="bi bi-arrow-up"></i>
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('teacher.move_question', exam_id=exam.id, q_id=q.id) }}" class="d-inline">
+                  <input type="hidden" name="direction" value="down">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm"
+                          {% if loop.last %}disabled{% endif %} title="Move down">
+                    <i class="bi bi-arrow-down"></i>
+                  </button>
+                </form>
+              </div>
+
+              <!-- Edit / Delete -->
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-dark btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#editModal{{ q.id }}"
+                        title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <form method="POST" action="{{ url_for('teacher.delete_question', exam_id=exam.id, q_id=q.id) }}"
+                      class="d-inline" onsubmit="return confirm('Delete this question?')">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <!-- Edit Question Modal -->
+        <div class="modal fade" id="editModal{{ q.id }}" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <form method="POST" action="{{ url_for('teacher.edit_question', exam_id=exam.id, q_id=q.id) }}">
+                <div class="modal-header">
+                  <h5 class="modal-title fw-bold">Edit Question {{ loop.index }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Question Text</label>
+                    <textarea name="text" class="form-control" rows="3" required>{{ q.text }}</textarea>
+                  </div>
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Type</label>
+                      <select name="type" class="form-select">
+                        <option value="short" {% if q.type == 'short' %}selected{% endif %}>Short Answer</option>
+                        <option value="long" {% if q.type == 'long' %}selected{% endif %}>Long Answer</option>
+                        <option value="essay" {% if q.type == 'essay' %}selected{% endif %}>Essay</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Max Marks</label>
+                      <input type="number" name="max_marks" class="form-control"
+                             value="{{ q.max_marks }}" min="1" required>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Model Answer</label>
+                    <textarea name="model_answer" class="form-control" rows="4"
+                              placeholder="The ideal answer for this question...">{{ q.model_answer or '' }}</textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Rubric <span class="text-muted fw-normal">(optional)</span></label>
+                    <textarea name="rubric" class="form-control" rows="3"
+                              placeholder="e.g. 3 marks for X, 2 marks for Y, 1 mark for Z">{{ q.rubric or '' }}</textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-dark">Save Changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-question-circle fs-2 mb-2 d-block"></i>
+        No questions yet. Add your first question using the form.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right: Add question form -->
+  <div class="col-lg-5">
+    <div class="card p-4 sticky-top" style="top: 80px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Add Question</h6>
+
+      <form method="POST" action="{{ url_for('teacher.add_question', exam_id=exam.id) }}">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Question Text</label>
+          <textarea name="text" class="form-control" rows="3"
+                    placeholder="Type your question here..." required></textarea>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-7">
+            <label class="form-label fw-semibold">Type</label>
+            <select name="type" class="form-select">
+              <option value="short">Short Answer</option>
+              <option value="long">Long Answer</option>
+              <option value="essay">Essay</option>
+            </select>
+          </div>
+          <div class="col-5">
+            <label class="form-label fw-semibold">Max Marks</label>
+            <input type="number" name="max_marks" class="form-control" value="10" min="1">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Model Answer</label>
+          <textarea name="model_answer" class="form-control" rows="3"
+                    placeholder="The ideal answer..."></textarea>
+          <div class="form-text">Used by the AI grader to score this question.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            Rubric <span class="text-muted fw-normal">(optional)</span>
+          </label>
+          <textarea name="rubric" class="form-control" rows="2"
+                    placeholder="e.g. 3 marks for X, 2 for Y"></textarea>
+          <div class="form-text">Helps the AI award partial marks.</div>
+        </div>
+
+        <button type="submit" class="btn btn-dark w-100">
+          <i class="bi bi-plus-lg me-1"></i>Add Question
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

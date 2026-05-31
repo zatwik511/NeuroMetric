@@ -16,7 +16,14 @@
       "Bash(curl -s -c /tmp/sc.txt -b /tmp/sc.txt -X POST http://127.0.0.1:5000/auth/login -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=student%40test.com&password=student123' -L -o /tmp/sr.html -w 'Final status: %{http_code}, URL: %{url_effective}\\\\n')",
       "Bash(curl -s -c /tmp/sc.txt -b /tmp/sc.txt http://127.0.0.1:5000/teacher/dashboard -L -o /tmp/br.html -w 'Final status: %{http_code}, URL: %{url_effective}\\\\n')",
       "Bash(curl -s http://127.0.0.1:5000/auth/login -X POST -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=teacher%40test.com&password=wrongpass' -o /tmp/wr.html -w 'Status: %{http_code}\\\\n')",
-      "Bash(curl -s -c /tmp/tc.txt -b /tmp/tc.txt http://127.0.0.1:5000/auth/dashboard -L -w 'Status: %{http_code}, Final URL: %{url_effective}\\\\n' -o /tmp/dash.html)"
+      "Bash(curl -s -c /tmp/tc.txt -b /tmp/tc.txt http://127.0.0.1:5000/auth/dashboard -L -w 'Status: %{http_code}, Final URL: %{url_effective}\\\\n' -o /tmp/dash.html)",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt -X POST http://127.0.0.1:5000/auth/login -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=teacher%40test.com&password=teacher123' -o /dev/null)",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt -X POST http://127.0.0.1:5000/teacher/exams/create -H 'Content-Type: application/x-www-form-urlencoded' -d 'title=Test+Exam&subject=Computer+Science&time_limit=45' -L -o /tmp/create_result.html -w 'Create exam: %{http_code} -> %{url_effective}\\\\n')",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt -X POST http://127.0.0.1:5000/teacher/exams/create -H 'Content-Type: application/x-www-form-urlencoded' -d 'title=Biology+Quiz&subject=Biology&time_limit=30' -w '%{url_effective}' -o /dev/null -L)",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt -X POST http://127.0.0.1:5000/teacher/exams/1/question/add -H 'Content-Type: application/x-www-form-urlencoded' -d 'text=What+is+a+computer%3F&type=short&max_marks=5&model_answer=A+computer+is+an+electronic+device&rubric=2+marks+for+electronic+device%2C+3+for+data+processing' -o /dev/null)",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt -X POST http://127.0.0.1:5000/teacher/exams/1/question/add -H 'Content-Type: application/x-www-form-urlencoded' -d 'text=Explain+the+CPU&type=long&max_marks=10&model_answer=The+CPU+processes+instructions&rubric=5+marks+for+function%2C+5+for+components' -o /dev/null)",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt -X POST http://127.0.0.1:5000/teacher/exams/1/toggle -o /dev/null -w 'Toggle status: %{http_code}\\\\n')",
+      "Bash(curl -s -c /tmp/tc3.txt -b /tmp/tc3.txt http://127.0.0.1:5000/teacher/exams -o /tmp/exams_page.html)"
     ]
   }
 }
