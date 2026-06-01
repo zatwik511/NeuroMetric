@@ -9,3 +9,4 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///exam_portal.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')

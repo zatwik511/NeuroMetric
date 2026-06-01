@@ -1,12 +1,12 @@
 import json
-import anthropic
+from google import genai
 from flask import current_app
 
-_MODEL = 'claude-haiku-4-5-20251001'
+_MODEL = 'gemini-1.5-flash'
 
 
 def _client():
-    return anthropic.Anthropic(api_key=current_app.config['ANTHROPIC_API_KEY'])
+    return genai.Client(api_key=current_app.config['GEMINI_API_KEY'])
 
 
 def grade_answer(question, answer_text):
@@ -21,7 +21,7 @@ def grade_answer(question, answer_text):
         f"Rubric: {question.rubric or 'Not provided'}\n"
         f"Max Marks: {question.max_marks}\n"
         f"Student Answer: {answer_text}\n\n"
-        f"Respond in this exact JSON format:\n"
+        f"Respond in this exact JSON format with no extra text:\n"
         f'{{\n'
         f'  "score": <number between 0 and {question.max_marks}>,\n'
         f'  "feedback": "<2-3 sentence explanation of what was correct, partially correct, and missing>",\n'
@@ -29,13 +29,8 @@ def grade_answer(question, answer_text):
         f'}}'
     )
 
-    message = _client().messages.create(
-        model=_MODEL,
-        max_tokens=500,
-        messages=[{'role': 'user', 'content': prompt}]
-    )
-
-    result = _parse_json(message.content[0].text)
+    response = _client().models.generate_content(model=_MODEL, contents=prompt)
+    result = _parse_json(response.text)
     result['score'] = max(0.0, min(float(result.get('score', 0)), question.max_marks))
     return result
 
@@ -51,16 +46,11 @@ def detect_ai_generated(answer_text):
         "Consider: unusual formality, lack of personal voice, very balanced structure, "
         "suspiciously comprehensive coverage for a timed exam, generic phrasing.\n\n"
         f"Text:\n{answer_text}\n\n"
-        'Respond with only this JSON: {"ai_probability": <integer 0-100>}'
+        'Respond with only this JSON and no extra text: {"ai_probability": <integer 0-100>}'
     )
 
-    message = _client().messages.create(
-        model=_MODEL,
-        max_tokens=100,
-        messages=[{'role': 'user', 'content': prompt}]
-    )
-
-    result = _parse_json(message.content[0].text)
+    response = _client().models.generate_content(model=_MODEL, contents=prompt)
+    result = _parse_json(response.text)
     return float(result.get('ai_probability', 0))
 
 
