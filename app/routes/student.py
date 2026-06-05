@@ -26,6 +26,7 @@ def dashboard():
     active_exams = Exam.query.filter_by(is_active=True).order_by(Exam.created_at.desc()).all()
 
     exam_status = {}
+    exam_submissions = {}
     for exam in active_exams:
         sub = Submission.query.filter_by(
             exam_id=exam.id, student_id=current_user.id
@@ -36,10 +37,12 @@ def dashboard():
             exam_status[exam.id] = 'result_available'
         else:
             exam_status[exam.id] = 'submitted'
+        exam_submissions[exam.id] = sub
 
     return render_template('student/dashboard.html',
                            active_exams=active_exams,
-                           exam_status=exam_status)
+                           exam_status=exam_status,
+                           exam_submissions=exam_submissions)
 
 
 # ── Take exam ──────────────────────────────────────────────────────────────────
@@ -139,6 +142,27 @@ def submitted(submission_id):
         id=submission_id, student_id=current_user.id
     ).first_or_404()
     return render_template('student/submitted.html', submission=submission)
+
+
+# ── Student result view ────────────────────────────────────────────────────────
+
+@student_bp.route('/result/<int:submission_id>')
+@login_required
+@student_required
+def result(submission_id):
+    submission = Submission.query.filter_by(
+        id=submission_id, student_id=current_user.id
+    ).first_or_404()
+
+    if not submission.released:
+        flash('Your result hasn\'t been released yet. Check back later.', 'info')
+        return redirect(url_for('student.dashboard'))
+
+    max_marks = sum(q.max_marks for q in submission.exam.questions)
+    return render_template('student/result.html',
+                           submission=submission,
+                           exam=submission.exam,
+                           max_marks=max_marks)
 
 
 # ── Cross-student similarity check ────────────────────────────────────────────

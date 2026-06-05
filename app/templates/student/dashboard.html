@@ -36,6 +36,14 @@
         <li><i class="bi bi-award me-2"></i>{{ exam.questions|sum(attribute='max_marks') }} total marks</li>
       </ul>
 
+      {% set sub = exam_submissions[exam.id] %}
+      {% if status == 'result_available' and sub %}
+      <div class="text-center mb-2">
+        <span class="fw-bold fs-5 text-primary">{{ sub.total_score | round(1) }}</span>
+        <span class="text-muted small"> / {{ exam.questions|sum(attribute='max_marks') }}</span>
+      </div>
+      {% endif %}
+
       <div class="mt-auto">
         {% if status == 'not_started' %}
           <a href="{{ url_for('student.take_exam', exam_id=exam.id) }}"
@@ -46,8 +54,9 @@
           <button class="btn btn-outline-secondary w-100" disabled>
             <i class="bi bi-check-circle me-1"></i>Submitted — Awaiting Result
           </button>
-        {% elif status == 'result_available' %}
-          <a href="#" class="btn btn-primary w-100">
+        {% elif status == 'result_available' and sub %}
+          <a href="{{ url_for('student.result', submission_id=sub.id) }}"
+             class="btn btn-primary w-100">
             <i class="bi bi-trophy me-1"></i>View Result
           </a>
         {% endif %}
