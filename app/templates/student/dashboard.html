@@ -8,6 +8,15 @@
       <i class="bi bi-person me-2 text-info"></i>My Exams
     </h3>
     <p class="text-muted mt-1 mb-0">Welcome back, {{ current_user.name }}</p>
+    <p class="text-muted small mb-0">
+      <i class="bi bi-building me-1"></i>{{ current_user.organization.name }}
+      {% if current_user.organization.org_type == 'school' %}
+        &middot; Standard {{ current_user.standard }}
+        &middot; {{ current_user.subjects|map(attribute='name')|join(', ') }}
+      {% else %}
+        &middot; {{ current_user.course.name }} &middot; Semester {{ current_user.semester }}
+      {% endif %}
+    </p>
   </div>
 </div>
 
@@ -18,7 +27,7 @@
   <div class="col-md-6 col-lg-4">
     <div class="card h-100 p-4">
       <div class="d-flex justify-content-between align-items-start mb-2">
-        <span class="badge bg-dark">{{ exam.subject }}</span>
+        <span class="badge bg-dark">{{ exam.context_label }}</span>
         {% if status == 'not_started' %}
           <span class="badge bg-success">Available</span>
         {% elif status == 'submitted' %}

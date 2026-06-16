@@ -8,6 +8,14 @@
       <i class="bi bi-person-workspace me-2 text-warning"></i>Dashboard
     </h3>
     <p class="text-muted mt-1 mb-0">Welcome back, {{ current_user.name }}</p>
+    <p class="text-muted small mb-0">
+      <i class="bi bi-building me-1"></i>{{ current_user.organization.name }}
+      {% if current_user.organization.org_type == 'school' %}
+        &middot; Standard {{ current_user.standard }}
+      {% else %}
+        &middot; {{ current_user.course.name }} &middot; Semester {{ current_user.semester }}
+      {% endif %}
+    </p>
   </div>
   <a href="{{ url_for('teacher.create_exam') }}" class="btn btn-dark">
     <i class="bi bi-plus-circle me-1"></i>New Exam
@@ -59,7 +67,7 @@
         {% for exam in exams[:5] %}
         <tr>
           <td class="fw-semibold">{{ exam.title }}</td>
-          <td class="text-muted">{{ exam.subject }}</td>
+          <td class="text-muted">{{ exam.context_label }}</td>
           <td><span class="badge bg-secondary">{{ exam.questions|length }}</span></td>
           <td>{{ exam.submissions|length }}</td>
           <td>

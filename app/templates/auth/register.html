@@ -2,8 +2,8 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-5 col-lg-4">
+<div class="row justify-content-center mt-4">
+  <div class="col-md-7 col-lg-6">
     <div class="card p-4">
       <div class="text-center mb-4">
         <i class="bi bi-person-plus-fill fs-1 text-dark"></i>
@@ -11,7 +11,7 @@
         <p class="text-muted small">Join the AI Exam Portal</p>
       </div>
 
-      <form method="POST" action="{{ url_for('auth.register') }}">
+      <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
         <div class="mb-3">
           <label class="form-label fw-semibold">Full Name</label>
           <input type="text" name="name" class="form-control" placeholder="Your full name" required autofocus>
@@ -24,18 +24,19 @@
           <label class="form-label fw-semibold">Password</label>
           <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required minlength="8">
         </div>
-        <div class="mb-4">
+
+        <div class="mb-3">
           <label class="form-label fw-semibold">I am a...</label>
           <div class="d-flex gap-3">
             <div class="form-check flex-fill border rounded p-3">
-              <input class="form-check-input" type="radio" name="role" id="roleTeacher" value="teacher" required>
+              <input class="form-check-input role-radio" type="radio" name="role" id="roleTeacher" value="teacher" required>
               <label class="form-check-label w-100" for="roleTeacher">
                 <i class="bi bi-person-workspace me-1"></i><strong>Teacher</strong>
                 <div class="text-muted small">Create and grade exams</div>
               </label>
             </div>
             <div class="form-check flex-fill border rounded p-3">
-              <input class="form-check-input" type="radio" name="role" id="roleStudent" value="student" required>
+              <input class="form-check-input role-radio" type="radio" name="role" id="roleStudent" value="student" required>
               <label class="form-check-label w-100" for="roleStudent">
                 <i class="bi bi-person me-1"></i><strong>Student</strong>
                 <div class="text-muted small">Take assigned exams</div>
@@ -43,7 +44,81 @@
             </div>
           </div>
         </div>
-        <button type="submit" class="btn btn-dark w-100">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Institution Type</label>
+          <div class="d-flex gap-3">
+            <div class="form-check flex-fill border rounded p-3">
+              <input class="form-check-input org-type-radio" type="radio" name="org_type" id="orgSchool" value="school" required>
+              <label class="form-check-label w-100" for="orgSchool">
+                <i class="bi bi-building me-1"></i><strong>School</strong>
+              </label>
+            </div>
+            <div class="form-check flex-fill border rounded p-3">
+              <input class="form-check-input org-type-radio" type="radio" name="org_type" id="orgUniversity" value="university" required>
+              <label class="form-check-label w-100" for="orgUniversity">
+                <i class="bi bi-bank me-1"></i><strong>University</strong>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- School fields -->
+        <div id="schoolFields" class="d-none">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">School</label>
+            <select class="form-select" name="school_organization_id" id="schoolSelect">
+              <option value="" selected disabled>Select your school</option>
+              {% for school in schools %}
+              <option value="{{ school.id }}">{{ school.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Standard</label>
+            <select class="form-select" name="standard" id="standardSelect">
+              <option value="" selected disabled>Select your standard</option>
+              {% for std in range(1, 13) %}
+              <option value="{{ std }}">Standard {{ std }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3 d-none" id="subjectsFieldWrap">
+            <label class="form-label fw-semibold">Subjects</label>
+            <div id="subjectsCheckboxes" class="border rounded p-3 small"></div>
+            <div class="form-text">Select all subjects you study.</div>
+          </div>
+        </div>
+
+        <!-- University fields -->
+        <div id="universityFields" class="d-none">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">University</label>
+            <select class="form-select" name="university_organization_id" id="universitySelect">
+              <option value="" selected disabled>Select your university</option>
+              {% for uni in universities %}
+              <option value="{{ uni.id }}">{{ uni.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Course</label>
+            <select class="form-select" name="course_id" id="courseSelect">
+              <option value="" selected disabled>Select a university first</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Semester</label>
+            <select class="form-select" name="semester" id="semesterSelect">
+              <option value="" selected disabled>Select a course first</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Hidden mirror field so the server always receives one organization_id -->
+        <input type="hidden" name="organization_id" id="organizationIdField">
+
+        <button type="submit" class="btn btn-dark w-100 mt-2">
           <i class="bi bi-person-check me-2"></i>Create Account
         </button>
       </form>
@@ -56,4 +131,104 @@
     </div>
   </div>
 </div>
+
+<script>
+const coursesByOrg = {{ courses_by_org | tojson }};
+const subjectsData = {{ subjects_data | tojson }};
+
+const schoolFields = document.getElementById('schoolFields');
+const universityFields = document.getElementById('universityFields');
+const schoolSelect = document.getElementById('schoolSelect');
+const universitySelect = document.getElementById('universitySelect');
+const standardSelect = document.getElementById('standardSelect');
+const courseSelect = document.getElementById('courseSelect');
+const semesterSelect = document.getElementById('semesterSelect');
+const subjectsFieldWrap = document.getElementById('subjectsFieldWrap');
+const subjectsCheckboxes = document.getElementById('subjectsCheckboxes');
+const organizationIdField = document.getElementById('organizationIdField');
+
+function currentRole() {
+  const checked = document.querySelector('input[name="role"]:checked');
+  return checked ? checked.value : null;
+}
+
+function toggleOrgType() {
+  const orgType = document.querySelector('input[name="org_type"]:checked')?.value;
+  schoolFields.classList.toggle('d-none', orgType !== 'school');
+  universityFields.classList.toggle('d-none', orgType !== 'university');
+  updateOrganizationIdField();
+}
+
+function updateOrganizationIdField() {
+  const orgType = document.querySelector('input[name="org_type"]:checked')?.value;
+  if (orgType === 'school') {
+    organizationIdField.value = schoolSelect.value || '';
+  } else if (orgType === 'university') {
+    organizationIdField.value = universitySelect.value || '';
+  } else {
+    organizationIdField.value = '';
+  }
+}
+
+function toggleSubjectsVisibility() {
+  subjectsFieldWrap.classList.toggle('d-none', currentRole() !== 'student');
+}
+
+function rebuildSubjectCheckboxes() {
+  const standard = parseInt(standardSelect.value, 10);
+  subjectsCheckboxes.innerHTML = '';
+  if (!standard) return;
+  subjectsData
+    .filter(s => standard >= s.min_standard && standard <= s.max_standard)
+    .forEach(s => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'form-check';
+      wrapper.innerHTML = `
+        <input class="form-check-input" type="checkbox" name="subject_ids" value="${s.id}" id="subj_${s.id}">
+        <label class="form-check-label" for="subj_${s.id}">${s.name}</label>
+      `;
+      subjectsCheckboxes.appendChild(wrapper);
+    });
+}
+
+function rebuildCourseOptions() {
+  const orgId = universitySelect.value;
+  courseSelect.innerHTML = '<option value="" selected disabled>Select a course</option>';
+  semesterSelect.innerHTML = '<option value="" selected disabled>Select a course first</option>';
+  const courses = coursesByOrg[orgId] || [];
+  courses.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.name} (${c.num_semesters} semesters)`;
+    opt.dataset.numSemesters = c.num_semesters;
+    courseSelect.appendChild(opt);
+  });
+}
+
+function rebuildSemesterOptions() {
+  semesterSelect.innerHTML = '';
+  const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+  const numSemesters = selectedOption ? parseInt(selectedOption.dataset.numSemesters, 10) : 0;
+  if (!numSemesters) {
+    semesterSelect.innerHTML = '<option value="" selected disabled>Select a course first</option>';
+    return;
+  }
+  semesterSelect.innerHTML = '<option value="" selected disabled>Select your semester</option>';
+  for (let i = 1; i <= numSemesters; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Semester ${i}`;
+    semesterSelect.appendChild(opt);
+  }
+}
+
+document.querySelectorAll('.org-type-radio').forEach(r => r.addEventListener('change', toggleOrgType));
+document.querySelectorAll('.role-radio').forEach(r => r.addEventListener('change', toggleSubjectsVisibility));
+standardSelect.addEventListener('change', rebuildSubjectCheckboxes);
+schoolSelect.addEventListener('change', updateOrganizationIdField);
+universitySelect.addEventListener('change', () => { rebuildCourseOptions(); updateOrganizationIdField(); });
+courseSelect.addEventListener('change', rebuildSemesterOptions);
+
+document.getElementById('registerForm').addEventListener('submit', updateOrganizationIdField);
+</script>
 {% endblock %}

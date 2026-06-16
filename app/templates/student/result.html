@@ -33,7 +33,7 @@
         {% endif %}
       </div>
       <h3 class="fw-bold mb-1">{{ exam.title }}</h3>
-      <p class="text-muted mb-3">{{ exam.subject }}</p>
+      <p class="text-muted mb-3">{{ exam.context_label }}</p>
 
       <div class="display-4 fw-bold mb-1 {% if pct >= 75 %}text-success{% elif pct >= 50 %}text-warning{% else %}text-secondary{% endif %}">
         {{ submission.total_score | round(1) }}

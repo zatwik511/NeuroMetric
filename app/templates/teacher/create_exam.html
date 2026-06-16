@@ -23,11 +23,25 @@
                  placeholder="e.g. Mid-Term Computer Science Exam" required autofocus>
         </div>
 
+        {% if is_school %}
         <div class="mb-3">
           <label class="form-label fw-semibold">Subject</label>
-          <input type="text" name="subject" class="form-control"
-                 placeholder="e.g. Computer Science" required>
+          <select name="subject_id" class="form-select" required>
+            <option value="" selected disabled>Select a subject</option>
+            {% for subject in school_subjects %}
+            <option value="{{ subject.id }}">{{ subject.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">This exam will be for Standard {{ current_user.standard }} students who study this subject.</div>
         </div>
+        {% else %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Course / Semester</label>
+          <input type="text" class="form-control" disabled
+                 value="{{ current_user.course.name }} - Semester {{ current_user.semester }}">
+          <div class="form-text">This exam will be visible to students in this course and semester only.</div>
+        </div>
+        {% endif %}
 
         <div class="mb-4">
           <label class="form-label fw-semibold">Time Limit</label>

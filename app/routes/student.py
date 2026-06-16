@@ -17,13 +17,34 @@ def student_required(f):
     return decorated
 
 
+@student_bp.before_request
+def require_complete_profile():
+    if current_user.is_authenticated and current_user.role == 'student' \
+            and not current_user.profile_complete:
+        flash('Your account profile is incomplete. Please contact support.', 'warning')
+        return redirect(url_for('auth.logout'))
+
+
+def _visible_exams_query():
+    """Exams scoped to this student's organization + standard/subjects or course/semester."""
+    query = Exam.query.filter_by(is_active=True, organization_id=current_user.organization_id)
+    if current_user.organization.org_type == 'school':
+        subject_ids = [s.id for s in current_user.subjects]
+        query = query.filter(Exam.standard == current_user.standard,
+                             Exam.subject_id.in_(subject_ids) if subject_ids else False)
+    else:
+        query = query.filter(Exam.course_id == current_user.course_id,
+                             Exam.semester == current_user.semester)
+    return query
+
+
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
 @student_bp.route('/dashboard')
 @login_required
 @student_required
 def dashboard():
-    active_exams = Exam.query.filter_by(is_active=True).order_by(Exam.created_at.desc()).all()
+    active_exams = _visible_exams_query().order_by(Exam.created_at.desc()).all()
 
     exam_status = {}
     exam_submissions = {}
@@ -51,7 +72,7 @@ def dashboard():
 @login_required
 @student_required
 def take_exam(exam_id):
-    exam = Exam.query.filter_by(id=exam_id, is_active=True).first_or_404()
+    exam = _visible_exams_query().filter(Exam.id == exam_id).first_or_404()
 
     sub = Submission.query.filter_by(
         exam_id=exam_id, student_id=current_user.id
@@ -81,7 +102,7 @@ def take_exam(exam_id):
 @login_required
 @student_required
 def submit_exam(exam_id):
-    exam = Exam.query.filter_by(id=exam_id, is_active=True).first_or_404()
+    exam = _visible_exams_query().filter(Exam.id == exam_id).first_or_404()
 
     sub = Submission.query.filter_by(
         exam_id=exam_id, student_id=current_user.id

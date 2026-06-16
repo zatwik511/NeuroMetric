@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from functools import wraps
 from app import db
-from app.models import Exam, Question, Submission, Answer, ExamEvent
+from app.models import Exam, Question, Submission, Answer, ExamEvent, Subject
 from app.grading import grade_answer, detect_ai_generated
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
@@ -17,6 +17,14 @@ def teacher_required(f):
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated
+
+
+@teacher_bp.before_request
+def require_complete_profile():
+    if current_user.is_authenticated and current_user.role == 'teacher' \
+            and not current_user.profile_complete:
+        flash('Your account profile is incomplete. Please contact support.', 'warning')
+        return redirect(url_for('auth.logout'))
 
 
 # ── Dashboard ──────────────────────────────────────────────────────────────────
@@ -52,14 +60,21 @@ def exams():
 @login_required
 @teacher_required
 def create_exam():
+    is_school = current_user.organization.org_type == 'school'
+    school_subjects = []
+    if is_school:
+        school_subjects = Subject.query.filter(
+            Subject.min_standard <= current_user.standard,
+            Subject.max_standard >= current_user.standard
+        ).order_by(Subject.name).all()
+
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
-        subject = request.form.get('subject', '').strip()
         time_limit = request.form.get('time_limit', '60').strip()
 
-        if not title or not subject:
-            flash('Title and subject are required.', 'danger')
-            return render_template('teacher/create_exam.html')
+        if not title:
+            flash('Title is required.', 'danger')
+            return render_template('teacher/create_exam.html', school_subjects=school_subjects, is_school=is_school)
 
         try:
             time_limit = int(time_limit)
@@ -67,18 +82,31 @@ def create_exam():
                 raise ValueError
         except ValueError:
             flash('Time limit must be a positive number.', 'danger')
-            return render_template('teacher/create_exam.html')
+            return render_template('teacher/create_exam.html', school_subjects=school_subjects, is_school=is_school)
 
-        exam = Exam(title=title, subject=subject,
-                    time_limit_minutes=time_limit,
-                    teacher_id=current_user.id)
+        exam = Exam(title=title, time_limit_minutes=time_limit,
+                    teacher_id=current_user.id,
+                    organization_id=current_user.organization_id)
+
+        if is_school:
+            subject_id = request.form.get('subject_id', type=int)
+            subject = next((s for s in school_subjects if s.id == subject_id), None)
+            if not subject:
+                flash('Please select a valid subject.', 'danger')
+                return render_template('teacher/create_exam.html', school_subjects=school_subjects, is_school=is_school)
+            exam.standard = current_user.standard
+            exam.subject_id = subject.id
+        else:
+            exam.course_id = current_user.course_id
+            exam.semester = current_user.semester
+
         db.session.add(exam)
         db.session.commit()
 
         flash(f'Exam "{title}" created. Now add your questions.', 'success')
         return redirect(url_for('teacher.edit_exam', exam_id=exam.id))
 
-    return render_template('teacher/create_exam.html')
+    return render_template('teacher/create_exam.html', school_subjects=school_subjects, is_school=is_school)
 
 
 # ── Edit exam / question builder ───────────────────────────────────────────────

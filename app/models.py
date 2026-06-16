@@ -8,6 +8,51 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+student_subjects = db.Table(
+    'student_subjects',
+    db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('subject_id', db.Integer, db.ForeignKey('subjects.id'), primary_key=True)
+)
+
+
+class Organization(db.Model):
+    __tablename__ = 'organizations'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    org_type = db.Column(db.String(10), nullable=False)  # 'school' or 'university'
+
+    courses = db.relationship('Course', backref='organization', lazy=True,
+                              cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Organization {self.name} ({self.org_type})>'
+
+
+class Course(db.Model):
+    __tablename__ = 'courses'
+
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    num_semesters = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<Course {self.name} ({self.num_semesters} sem)>'
+
+
+class Subject(db.Model):
+    __tablename__ = 'subjects'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    min_standard = db.Column(db.Integer, nullable=False)
+    max_standard = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<Subject {self.name} (std {self.min_standard}-{self.max_standard})>'
+
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
@@ -18,10 +63,32 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(10), nullable=False)  # 'teacher' or 'student'
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=True)
+    standard = db.Column(db.Integer, nullable=True)  # school accounts only
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)  # university accounts only
+    semester = db.Column(db.Integer, nullable=True)  # university accounts only
+
+    organization = db.relationship('Organization', backref='users', lazy=True)
+    course = db.relationship('Course', backref='students', lazy=True, foreign_keys=[course_id])
+    subjects = db.relationship('Subject', secondary=student_subjects, lazy='subquery',
+                               backref=db.backref('students_taking', lazy=True))
+
     exams = db.relationship('Exam', backref='teacher', lazy=True,
                             foreign_keys='Exam.teacher_id')
     submissions = db.relationship('Submission', backref='student', lazy=True,
                                   foreign_keys='Submission.student_id')
+
+    @property
+    def profile_complete(self):
+        if not self.organization_id:
+            return False
+        if self.organization.org_type == 'school':
+            if not self.standard:
+                return False
+            if self.role == 'student' and len(self.subjects) == 0:
+                return False
+            return True
+        return bool(self.course_id and self.semester)
 
     def __repr__(self):
         return f'<User {self.email} ({self.role})>'
@@ -32,16 +99,38 @@ class Exam(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    subject = db.Column(db.String(100), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     time_limit_minutes = db.Column(db.Integer, nullable=False, default=60)
     is_active = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    standard = db.Column(db.Integer, nullable=True)  # school exams only
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=True)  # school exams only
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)  # university exams only
+    semester = db.Column(db.Integer, nullable=True)  # university exams only
+
+    organization = db.relationship('Organization', backref='exams', lazy=True)
+    subject = db.relationship('Subject', backref='exams', lazy=True)
+    course = db.relationship('Course', backref='exams', lazy=True, foreign_keys=[course_id])
+
     questions = db.relationship('Question', backref='exam', lazy=True,
                                 order_by='Question.order', cascade='all, delete-orphan')
     submissions = db.relationship('Submission', backref='exam', lazy=True,
                                   cascade='all, delete-orphan')
+
+    @property
+    def context_label(self):
+        """Human-readable scope: 'Standard 8 - Math' or 'B.Tech CS - Sem 3'."""
+        if self.organization.org_type == 'school':
+            label = f'Standard {self.standard}'
+            if self.subject:
+                label += f' - {self.subject.name}'
+            return label
+        label = self.course.name if self.course else 'Unknown Course'
+        if self.semester:
+            label += f' - Sem {self.semester}'
+        return label
 
     def __repr__(self):
         return f'<Exam {self.title}>'
