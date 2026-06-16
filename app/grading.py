@@ -1,12 +1,27 @@
 import json
+import time
 from google import genai
+from google.genai import errors as genai_errors
 from flask import current_app
 
-_MODEL = 'gemini-1.5-flash'
+_MODEL = 'gemini-2.5-flash'
+_MAX_RETRIES = 3
+_RETRY_BACKOFF_SECONDS = 2
 
 
 def _client():
     return genai.Client(api_key=current_app.config['GEMINI_API_KEY'])
+
+
+def _generate(client, prompt):
+    """Call Gemini, retrying on transient server overload (503)."""
+    for attempt in range(_MAX_RETRIES):
+        try:
+            return client.models.generate_content(model=_MODEL, contents=prompt)
+        except genai_errors.ServerError:
+            if attempt == _MAX_RETRIES - 1:
+                raise
+            time.sleep(_RETRY_BACKOFF_SECONDS * (attempt + 1))
 
 
 def grade_answer(question, answer_text):
@@ -29,7 +44,8 @@ def grade_answer(question, answer_text):
         f'}}'
     )
 
-    response = _client().models.generate_content(model=_MODEL, contents=prompt)
+    client = _client()
+    response = _generate(client, prompt)
     result = _parse_json(response.text)
     result['score'] = max(0.0, min(float(result.get('score', 0)), question.max_marks))
     return result
@@ -49,7 +65,8 @@ def detect_ai_generated(answer_text):
         'Respond with only this JSON and no extra text: {"ai_probability": <integer 0-100>}'
     )
 
-    response = _client().models.generate_content(model=_MODEL, contents=prompt)
+    client = _client()
+    response = _generate(client, prompt)
     result = _parse_json(response.text)
     return float(result.get('ai_probability', 0))
 
