@@ -1,4 +1,4 @@
-# Building Stages — AI Exam Portal
+# Building Stages — NeuroMetric
 
 Each stage below is a self-contained prompt to be given to Claude when ready to implement that stage.
 Complete and test each stage before moving to the next.
@@ -46,7 +46,7 @@ Verify by running run.py and confirming the database tables are created.
 ## Stage 2 — Authentication System (Teacher & Student Login)
 
 ```
-We are building Stage 2 of the AI Exam Portal.
+We are building Stage 2 of the NeuroMetric.
 The project structure and database models from Stage 1 are already in place.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 
@@ -78,7 +78,7 @@ confirming role-based redirects work, and confirming protected routes block the 
 ## Stage 3 — Teacher Dashboard: Exam & Question Builder
 
 ```
-We are building Stage 3 of the AI Exam Portal.
+We are building Stage 3 of the NeuroMetric.
 Auth system from Stage 2 is in place. Teachers can log in and reach their dashboard.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 
@@ -114,7 +114,7 @@ publishing it, and confirming it appears as Live.
 ## Stage 4 — Student Dashboard: Exam Taking Interface
 
 ```
-We are building Stage 4 of the AI Exam Portal.
+We are building Stage 4 of the NeuroMetric.
 Teachers can create and publish exams. Students can log in.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 
@@ -146,7 +146,7 @@ submitting, and confirming the submission is saved in the database.
 ## Stage 5 — Anti-Cheating Detection System
 
 ```
-We are building Stage 5 of the AI Exam Portal.
+We are building Stage 5 of the NeuroMetric.
 Students can take and submit exams. Answers are stored in the database.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 
@@ -183,7 +183,7 @@ then checking the database confirms events were logged and aggregated on the Ans
 ## Stage 6 — LLM Grading Engine
 
 ```
-We are building Stage 6 of the AI Exam Portal.
+We are building Stage 6 of the NeuroMetric.
 Anti-cheating events are logged. Submissions are stored with status='pending'.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 
@@ -228,7 +228,7 @@ has a score, feedback, and ai_flag_score populated.
 ## Stage 7 — Teacher Results & Suspicion Dashboard
 
 ```
-We are building Stage 7 of the AI Exam Portal.
+We are building Stage 7 of the NeuroMetric.
 LLM grading is complete. Submissions have scores, feedback, and flag data.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 
@@ -261,7 +261,7 @@ overriding one score, and approving the result.
 ## Stage 8 — Student Results View & Polish
 
 ```
-We are building Stage 8 of the AI Exam Portal.
+We are building Stage 8 of the NeuroMetric.
 Teachers can review, override, and approve graded submissions.
 Project location: c:\Users\satwi\Documents\Work\Projects\Serious\Subjective answers evalutaion
 

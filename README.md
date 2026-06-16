@@ -1,4 +1,4 @@
-# AI Exam Portal
+# NeuroMetric
 
 A full-stack web application for conducting AI-powered subjective exams. Teachers create and publish exams; students take them with anti-cheating monitoring; Google Gemini grades written answers automatically; teachers review, override, and release results.
 

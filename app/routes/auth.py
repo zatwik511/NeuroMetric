@@ -18,6 +18,10 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('auth.dashboard_redirect'))
 
+    preset_role = request.values.get('role')
+    if preset_role not in ('teacher', 'student'):
+        preset_role = None
+
     def render_form():
         schools = Organization.query.filter_by(org_type='school').order_by(Organization.name).all()
         universities = Organization.query.filter_by(org_type='university').order_by(Organization.name).all()
@@ -36,7 +40,8 @@ def register():
 
         return render_template('auth/register.html',
                                schools=schools, universities=universities,
-                               courses_by_org=courses_by_org, subjects_data=subjects_data)
+                               courses_by_org=courses_by_org, subjects_data=subjects_data,
+                               preset_role=preset_role)
 
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -110,7 +115,7 @@ def register():
         db.session.commit()
 
         flash('Account created! Please log in.', 'success')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.login', role=role))
 
     return render_form()
 
@@ -119,6 +124,10 @@ def register():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('auth.dashboard_redirect'))
+
+    role = request.args.get('role')
+    if role not in ('teacher', 'student'):
+        role = None
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -131,7 +140,7 @@ def login():
 
         flash('Invalid email or password.', 'danger')
 
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', role=role)
 
 
 @auth_bp.route('/logout')

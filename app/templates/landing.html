@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block head %}
+<style>
+  .nm-hero {
+    min-height: calc(100vh - 0px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 20px 64px;
+    text-align: center;
+  }
+  .nm-logo {
+    font-size: 4rem; line-height: 1;
+    filter: drop-shadow(0 10px 18px rgba(108,92,231,0.35));
+    animation: floaty 4s ease-in-out infinite;
+  }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .nm-title {
+    font-family: 'Fredoka', sans-serif; font-weight: 700;
+    font-size: clamp(2.6rem, 7vw, 4.4rem);
+    background: linear-gradient(100deg, var(--nm-primary), var(--nm-teal) 60%, var(--nm-coral));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 10px 0 6px;
+  }
+  .nm-sub { color: var(--nm-muted); font-size: 1.15rem; font-weight: 700; max-width: 560px; }
+
+  .role-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+    margin-top: 44px; width: 100%; max-width: 760px;
+  }
+  @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } }
+
+  .role-card {
+    background: #fffdfb; border-radius: 28px; padding: 34px 28px;
+    box-shadow: 0 18px 44px -20px rgba(45,42,69,0.4);
+    border: 2px solid transparent;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    position: relative; overflow: hidden;
+  }
+  .role-card::before {
+    content: ''; position: absolute; inset: 0 0 auto 0; height: 8px;
+  }
+  .role-card:hover { transform: translateY(-8px); box-shadow: 0 26px 54px -20px rgba(45,42,69,0.45); }
+  .role-card.teacher:hover { border-color: var(--nm-teacher); }
+  .role-card.student:hover { border-color: var(--nm-student); }
+  .role-card.teacher::before { background: linear-gradient(90deg, var(--nm-teacher), #ffb199); }
+  .role-card.student::before { background: linear-gradient(90deg, var(--nm-student), #6fe0ec); }
+
+  .role-emoji {
+    font-size: 3.2rem; line-height: 1; margin-bottom: 10px;
+    display: inline-block;
+  }
+  .role-name { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.7rem; }
+  .role-desc { color: var(--nm-muted); font-weight: 700; font-size: 0.95rem; margin-bottom: 22px; min-height: 42px; }
+
+  .role-btns { display: flex; gap: 10px; }
+  .role-btns .btn { flex: 1; }
+  .btn-teacher { background: linear-gradient(100deg, var(--nm-teacher), var(--nm-teacher-dark)); color: #fff; border: none; box-shadow: 0 8px 18px -8px rgba(255,122,89,0.8); }
+  .btn-teacher:hover { color: #fff; filter: brightness(1.05); }
+  .btn-outline-teacher { border: 2px solid var(--nm-teacher); color: var(--nm-teacher-dark); background: transparent; }
+  .btn-outline-teacher:hover { background: var(--nm-teacher); color: #fff; }
+  .btn-student { background: linear-gradient(100deg, var(--nm-student), var(--nm-student-dark)); color: #fff; border: none; box-shadow: 0 8px 18px -8px rgba(26,175,192,0.8); }
+  .btn-student:hover { color: #fff; filter: brightness(1.05); }
+  .btn-outline-student { border: 2px solid var(--nm-student); color: var(--nm-student-dark); background: transparent; }
+  .btn-outline-student:hover { background: var(--nm-student); color: #fff; }
+
+  .nm-feature-row { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; margin-top: 52px; }
+  .nm-feature { display: inline-flex; align-items: center; gap: 8px; color: var(--nm-muted); font-weight: 700; }
+  .nm-feature i { color: var(--nm-primary); font-size: 1.1rem; }
+</style>
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block main %}
+<div class="nm-hero">
+  <div class="nm-logo">🧠</div>
+  <h1 class="nm-title">NeuroMetric</h1>
+  <p class="nm-sub">AI-powered exams that grade themselves — smart marking, honest results, zero busywork.</p>
+
+  <div class="role-grid">
+    <!-- Teacher -->
+    <div class="role-card teacher">
+      <span class="role-emoji">👩‍🏫</span>
+      <div class="role-name" style="color: var(--nm-teacher-dark);">I'm a Teacher</div>
+      <p class="role-desc">Build exams, let AI grade them, and catch cheating at a glance.</p>
+      <div class="role-btns">
+        <a href="{{ url_for('auth.login', role='teacher') }}" class="btn btn-teacher">Log In</a>
+        <a href="{{ url_for('auth.register', role='teacher') }}" class="btn btn-outline-teacher">Register</a>
+      </div>
+    </div>
+
+    <!-- Student -->
+    <div class="role-card student">
+      <span class="role-emoji">🎓</span>
+      <div class="role-name" style="color: var(--nm-student-dark);">I'm a Student</div>
+      <p class="role-desc">Take exams, get instant AI feedback, and track your scores.</p>
+      <div class="role-btns">
+        <a href="{{ url_for('auth.login', role='student') }}" class="btn btn-student">Log In</a>
+        <a href="{{ url_for('auth.register', role='student') }}" class="btn btn-outline-student">Register</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="nm-feature-row">
+    <span class="nm-feature"><i class="bi bi-robot"></i>AI Grading</span>
+    <span class="nm-feature"><i class="bi bi-shield-check"></i>Cheat Detection</span>
+    <span class="nm-feature"><i class="bi bi-lightning-charge"></i>Instant Feedback</span>
+    <span class="nm-feature"><i class="bi bi-bar-chart"></i>Result Analytics</span>
+  </div>
+</div>
+{% endblock %}

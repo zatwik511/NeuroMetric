@@ -36,7 +36,7 @@ def create_app():
             if current_user.role == 'teacher':
                 return redirect(url_for('teacher.dashboard'))
             return redirect(url_for('student.dashboard'))
-        return redirect(url_for('auth.login'))
+        return render_template('landing.html')
 
     @app.errorhandler(404)
     def not_found(e):
