@@ -48,7 +48,7 @@
       {% set sub = exam_submissions[exam.id] %}
       {% if status == 'result_available' and sub %}
       <div class="text-center mb-2">
-        <span class="fw-bold fs-5 text-primary">{{ sub.total_score | round(1) }}</span>
+        <span class="fw-bold fs-5 text-primary">{{ (sub.total_score or 0) | round(1) }}</span>
         <span class="text-muted small"> / {{ exam.questions|sum(attribute='max_marks') }}</span>
       </div>
       {% endif %}

@@ -14,7 +14,7 @@
   <div class="col-lg-8">
     <div class="card p-4 text-center">
       <div class="mb-3">
-        {% set pct = (submission.total_score / max_marks * 100) | round | int if max_marks > 0 else 0 %}
+        {% set pct = ((submission.total_score or 0) / max_marks * 100) | round | int if max_marks > 0 else 0 %}
         {% if pct >= 75 %}
           <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center
                       justify-content-center mb-3" style="width:80px;height:80px;">
@@ -36,7 +36,7 @@
       <p class="text-muted mb-3">{{ exam.context_label }}</p>
 
       <div class="display-4 fw-bold mb-1 {% if pct >= 75 %}text-success{% elif pct >= 50 %}text-warning{% else %}text-secondary{% endif %}">
-        {{ submission.total_score | round(1) }}
+        {{ (submission.total_score or 0) | round(1) }}
         <span class="fs-4 text-muted fw-normal">/ {{ max_marks }}</span>
       </div>
       <p class="text-muted mb-0">{{ pct }}%</p>
