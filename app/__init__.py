@@ -48,5 +48,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        from app.seed import seed_if_needed
+        seed_if_needed()
 
     return app
